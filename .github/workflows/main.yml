@@ -1,20 +1,31 @@
-name: Hysteria-Turbo
+name: Hysteria-24h-Turbo
 on: 
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *' # كيعاود يخدم راسو كل 6 سوايع باش ما يوقفش
+
 jobs:
-  run-saad-server:
+  run-saad-24h:
     runs-on: ubuntu-latest
     steps:
-      - name: Start Hysteria
+      - name: Keep Alive & Run
         run: |
           sudo wget -q https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64 -O /usr/local/bin/hy2
           sudo chmod +x /usr/local/bin/hy2
+          
           cat <<EOF > config.yaml
           listen: :443
           auth: { type: "password", password: "saad_turbo_pass" }
           tls: { cert: "selfsigned", key: "selfsigned" }
           obfs: { type: "salamander", salamander: { password: "saad_obfs_pass" } }
+          quic:
+            maxIdleTimeout: 100h # باش ما يقطعش الكونيكسيون إيلا كنتي ناعس
+            maxIncomingStreams: 8192
           EOF
+          
           curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cf && chmod +x cf
           ./hy2 server -c config.yaml &
-          ./cf tunnel --url http://localhost:443
+          ./cf tunnel --url http://localhost:443 &
+          
+          # خدعة الـ 24 ساعة: كيبقى فايق ومستعد يجاوب
+          while true; do echo "Server is alive..."; sleep 300; done
