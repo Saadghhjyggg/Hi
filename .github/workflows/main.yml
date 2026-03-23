@@ -1,6 +1,6 @@
-name: Hysteria-Cloudflare
+name: Hysteria-Turbo-V2
 on: 
-  workflow_dispatch: # باش تخدمو وقت ما بغيتي بيدك
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,17 +11,23 @@ jobs:
           sudo wget -q https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64 -O /usr/local/bin/hysteria
           sudo chmod +x /usr/local/bin/hysteria
           wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-          sudo dpkg -i cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared.deb
           
       - name: Run Server
         run: |
-          # إنشاء الإعدادات
-          echo "listen: :54321" > config.yaml
-          echo "auth: saad_turbo_pass" >> config.yaml
-          echo "tls:" >> config.yaml
-          echo "  cert: selfsigned" >> config.yaml
-          echo "  key: selfsigned" >> config.yaml
+          # إنشاء ملف الإعدادات بتنسيق YAML صحيح ومضمون
+          cat <<EOF > config.yaml
+          listen: :54321
+          auth:
+            type: password
+            password: saad_turbo_pass
+          tls:
+            cert: selfsigned
+            key: selfsigned
+          EOF
           
-          # تشغيل السيرفر والنفق
+          # تشغيل السيرفر في الخلفية
           hysteria server -c config.yaml &
-          cloudflared tunnel --url udp://localhost:54321
+          
+          # تشغيل النفق (استخدام http للتحويل الداخلي يحل مشكلة الـ UDP)
+          cloudflared tunnel --url http://localhost:54321
