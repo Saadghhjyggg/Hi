@@ -1,25 +1,35 @@
-name: Hysteria-Force-Turbo
+name: Saad-VLESS-Turbo
 on: 
   workflow_dispatch:
 jobs:
-  run-server:
+  run-vless:
     runs-on: ubuntu-latest
     steps:
-      - name: Start Hysteria Server
+      - name: Run Server
         run: |
-          # تحميل الهستيريا مباشرة
-          sudo wget -q https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64 -O /usr/local/bin/hy2
-          sudo chmod +x /usr/local/bin/hy2
+          # تحميل xray
+          bash <(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)
           
-          # إنشاء الإعدادات
-          cat <<EOF > config.yaml
-          listen: :443
-          auth: { type: "password", password: "saad_turbo_pass" }
-          tls: { cert: "selfsigned", key: "selfsigned" }
-          obfs: { type: "salamander", salamander: { password: "saad_obfs_pass" } }
+          # إعداد السيرفر (VLESS + WS)
+          cat <<EOF > /usr/local/etc/xray/config.json
+          {
+            "inbounds": [{
+              "port": 8080,
+              "protocol": "vless",
+              "settings": {
+                "clients": [{"id": "saad-1122-3344-5566-778899aabbcc"}],
+                "decryption": "none"
+              },
+              "streamSettings": {
+                "network": "ws",
+                "wsSettings": {"path": "/saad-turbo"}
+              }
+            }],
+            "outbounds": [{"protocol": "freedom"}]
+          }
           EOF
           
-          # تشغيل النفق مع Cloudflare مباشرة
+          # تشغيل النفق
           curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cf && chmod +x cf
-          ./hy2 server -c config.yaml &
-          ./cf tunnel --url http://localhost:443
+          xray run -c /usr/local/etc/xray/config.json &
+          ./cf tunnel --url http://localhost:8080
