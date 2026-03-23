@@ -1,36 +1,36 @@
-name: Hysteria-Turbo-With-Page
-on: 
-  workflow_dispatch:
+listen: :443
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup Server & Page
-        run: |
-          # تثبيت Hysteria و Cloudflare
-          sudo wget -q https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64 -O /usr/local/bin/hysteria
-          sudo chmod +x /usr/local/bin/hysteria
-          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
-          sudo chmod +x cloudflared
-          
-          # إنشاء صفحة ترحيب بسيطة لسعد
-          echo "<html><body style='background:#121212;color:#00ff00;text-align:center;padding-top:100px;font-family:sans-serif;'><h1>🚀 Saad Server is ONLINE</h1><p>Hysteria 2 is running on GitHub Actions @ 1Gbps</p></body></html>" > index.html
-          
-          # إعداد Hysteria
-          cat <<EOF > config.yaml
-          listen: :54321
-          auth:
-            type: password
-            password: saad_turbo_pass
-          tls:
-            cert: selfsigned
-            key: selfsigned
-          EOF
-          
-          # تشغيل صفحة الويب وسيرفر Hysteria في الخلفية
-          python3 -m http.server 8080 &
-          ./hysteria server -c config.yaml &
-          
-          # تشغيل النفق ليعرض صفحة الويب أولاً (للتأكد)
-          ./cloudflared tunnel --url http://localhost:8080
+tls:
+  cert: selfsigned
+  key: selfsigned
+  sniGuard: disable
+
+auth:
+  type: password
+  password: saad_turbo_pass
+
+obfs:
+  type: salamander
+  salamander:
+    password: saad_obfs_pass
+
+quic:
+  initStreamReceiveWindow: 8388608
+  maxStreamReceiveWindow: 8388608
+  initConnReceiveWindow: 20971520
+  maxConnReceiveWindow: 20971520
+  maxIdleTimeout: 30s
+  maxIncomingStreams: 1024
+  disablePathMTUDiscovery: false
+
+bandwidth:
+  up: 1 gbps
+  down: 1 gbps
+
+ignoreClientBandwidth: true
+disableUDP: false
+udpIdleTimeout: 60s
+
+sniff:
+  enable: true
+  timeout: 2s
