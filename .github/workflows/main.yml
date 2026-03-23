@@ -5,16 +5,13 @@ jobs:
   run-server:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Network & Run
+      - name: Start Hysteria Server
         run: |
-          # إصلاح الـ DNS في سيرفر GitHub
-          sudo echo "nameserver 8.8.8.8" > /etc/resolv.conf
-          
-          # تحميل الهستيريا
+          # تحميل الهستيريا مباشرة
           sudo wget -q https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64 -O /usr/local/bin/hy2
           sudo chmod +x /usr/local/bin/hy2
           
-          # إنشاء الإعدادات (تأكد من الباسورد)
+          # إنشاء الإعدادات
           cat <<EOF > config.yaml
           listen: :443
           auth: { type: "password", password: "saad_turbo_pass" }
@@ -22,7 +19,7 @@ jobs:
           obfs: { type: "salamander", salamander: { password: "saad_obfs_pass" } }
           EOF
           
-          # تشغيل النفق
+          # تشغيل النفق مع Cloudflare مباشرة
           curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cf && chmod +x cf
           ./hy2 server -c config.yaml &
           ./cf tunnel --url http://localhost:443
