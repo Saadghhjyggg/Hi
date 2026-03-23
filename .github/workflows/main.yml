@@ -1,36 +1,44 @@
-listen: :443
+name: Hysteria-Turbo-Salamander
+on: 
+  workflow_dispatch:
 
-tls:
-  cert: selfsigned
-  key: selfsigned
-  sniGuard: disable
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Server
+        run: |
+          # تحميل البرامج
+          sudo wget -q https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64 -O /usr/local/bin/hysteria
+          sudo chmod +x /usr/local/bin/hysteria
+          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
+          sudo chmod +x cloudflared
 
-auth:
-  type: password
-  password: saad_turbo_pass
+          # إنشاء ملف الإعدادات (الكود اللي لقيتي مقاد)
+          cat <<EOF > config.yaml
+          listen: :443
+          tls:
+            cert: selfsigned
+            key: selfsigned
+          auth:
+            type: password
+            password: saad_turbo_pass
+          obfs:
+            type: salamander
+            salamander:
+              password: saad_obfs_pass
+          quic:
+            initStreamReceiveWindow: 8388608
+            maxStreamReceiveWindow: 8388608
+            initConnReceiveWindow: 20971520
+            maxConnReceiveWindow: 20971520
+            maxIdleTimeout: 30s
+          bandwidth:
+            up: 1 gbps
+            down: 1 gbps
+          ignoreClientBandwidth: true
+          EOF
 
-obfs:
-  type: salamander
-  salamander:
-    password: saad_obfs_pass
-
-quic:
-  initStreamReceiveWindow: 8388608
-  maxStreamReceiveWindow: 8388608
-  initConnReceiveWindow: 20971520
-  maxConnReceiveWindow: 20971520
-  maxIdleTimeout: 30s
-  maxIncomingStreams: 1024
-  disablePathMTUDiscovery: false
-
-bandwidth:
-  up: 1 gbps
-  down: 1 gbps
-
-ignoreClientBandwidth: true
-disableUDP: false
-udpIdleTimeout: 60s
-
-sniff:
-  enable: true
-  timeout: 2s
+          # تشغيل السيرفر والنفق
+          ./hysteria server -c config.yaml &
+          ./cloudflared tunnel --url http://localhost:443
