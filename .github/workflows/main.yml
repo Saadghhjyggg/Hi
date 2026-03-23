@@ -1,17 +1,18 @@
-name: Saad-VLESS-Turbo
+name: Saad-VLESS-Final
 on: 
   workflow_dispatch:
 jobs:
   run-vless:
     runs-on: ubuntu-latest
     steps:
-      - name: Run Server
+      - name: Start VLESS Server
         run: |
-          # تثبيت xray بصلاحيات الـ root
-          bash <(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh) sudo
+          # تحميل نسخة جاهزة من Xray بلا تثبيت
+          wget https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip
+          unzip Xray-linux-64.zip
           
-          # إعداد السيرفر
-          cat <<EOF | sudo tee /usr/local/etc/xray/config.json
+          # إعداد السيرفر وسط المجلد الحالي
+          cat <<EOF > config.json
           {
             "inbounds": [{
               "port": 8080,
@@ -29,7 +30,7 @@ jobs:
           }
           EOF
           
-          # تشغيل النفق
+          # تشغيل السيرفر والنفق
           curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cf && chmod +x cf
-          sudo xray run -c /usr/local/etc/xray/config.json &
+          ./xray run -c config.json &
           ./cf tunnel --url http://localhost:8080
