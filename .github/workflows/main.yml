@@ -1,44 +1,20 @@
-name: Hysteria-Turbo-Salamander
+name: Hysteria-Turbo
 on: 
   workflow_dispatch:
-
 jobs:
-  build:
+  run-saad-server:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Server
+      - name: Start Hysteria
         run: |
-          # تحميل البرامج
-          sudo wget -q https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64 -O /usr/local/bin/hysteria
-          sudo chmod +x /usr/local/bin/hysteria
-          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
-          sudo chmod +x cloudflared
-
-          # إنشاء ملف الإعدادات (الكود اللي لقيتي مقاد)
+          sudo wget -q https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64 -O /usr/local/bin/hy2
+          sudo chmod +x /usr/local/bin/hy2
           cat <<EOF > config.yaml
           listen: :443
-          tls:
-            cert: selfsigned
-            key: selfsigned
-          auth:
-            type: password
-            password: saad_turbo_pass
-          obfs:
-            type: salamander
-            salamander:
-              password: saad_obfs_pass
-          quic:
-            initStreamReceiveWindow: 8388608
-            maxStreamReceiveWindow: 8388608
-            initConnReceiveWindow: 20971520
-            maxConnReceiveWindow: 20971520
-            maxIdleTimeout: 30s
-          bandwidth:
-            up: 1 gbps
-            down: 1 gbps
-          ignoreClientBandwidth: true
+          auth: { type: "password", password: "saad_turbo_pass" }
+          tls: { cert: "selfsigned", key: "selfsigned" }
+          obfs: { type: "salamander", salamander: { password: "saad_obfs_pass" } }
           EOF
-
-          # تشغيل السيرفر والنفق
-          ./hysteria server -c config.yaml &
-          ./cloudflared tunnel --url http://localhost:443
+          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cf && chmod +x cf
+          ./hy2 server -c config.yaml &
+          ./cf tunnel --url http://localhost:443
