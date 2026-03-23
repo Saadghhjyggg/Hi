@@ -1,0 +1,36 @@
+listen: :443
+
+tls:
+  cert: selfsigned
+  key: selfsigned
+  sniGuard: disable
+
+auth:
+  type: password
+  password: saad_turbo_pass
+
+obfs:
+  type: salamander
+  salamander:
+    password: saad_obfs_pass
+
+quic:
+  initStreamReceiveWindow: 8388608
+  maxStreamReceiveWindow: 8388608
+  initConnReceiveWindow: 20971520
+  maxConnReceiveWindow: 20971520
+  maxIdleTimeout: 30s
+  maxIncomingStreams: 1024
+  disablePathMTUDiscovery: false
+
+bandwidth:
+  up: 1 gbps
+  down: 1 gbps
+
+ignoreClientBandwidth: true
+disableUDP: false
+udpIdleTimeout: 60s
+
+sniff:
+  enable: true
+  timeout: 2s
