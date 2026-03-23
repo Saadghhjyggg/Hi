@@ -7,11 +7,11 @@ jobs:
     steps:
       - name: Run Server
         run: |
-          # تحميل xray
-          bash <(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)
+          # تثبيت xray بصلاحيات الـ root
+          bash <(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh) sudo
           
-          # إعداد السيرفر (VLESS + WS)
-          cat <<EOF > /usr/local/etc/xray/config.json
+          # إعداد السيرفر
+          cat <<EOF | sudo tee /usr/local/etc/xray/config.json
           {
             "inbounds": [{
               "port": 8080,
@@ -31,5 +31,5 @@ jobs:
           
           # تشغيل النفق
           curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cf && chmod +x cf
-          xray run -c /usr/local/etc/xray/config.json &
+          sudo xray run -c /usr/local/etc/xray/config.json &
           ./cf tunnel --url http://localhost:8080
