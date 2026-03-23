@@ -6,16 +6,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Hysteria & Cloudflare
+      - name: Install Tools
         run: |
+          # تحميل وتثبيت Hysteria
           sudo wget -q https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64 -O /usr/local/bin/hysteria
           sudo chmod +x /usr/local/bin/hysteria
-          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-          sudo dpkg -i cloudflared.deb
           
+          # تحميل وتثبيت Cloudflared مباشرة
+          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
+          sudo chmod +x cloudflared
+          sudo mv cloudflared /usr/local/bin/
+
       - name: Run Server
         run: |
-          # إنشاء ملف الإعدادات بتنسيق YAML صحيح ومضمون
+          # إنشاء ملف الإعدادات
           cat <<EOF > config.yaml
           listen: :54321
           auth:
@@ -29,5 +33,5 @@ jobs:
           # تشغيل السيرفر في الخلفية
           hysteria server -c config.yaml &
           
-          # تشغيل النفق (استخدام http للتحويل الداخلي يحل مشكلة الـ UDP)
+          # تشغيل النفق وإظهار الرابط
           cloudflared tunnel --url http://localhost:54321
