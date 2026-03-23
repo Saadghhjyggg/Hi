@@ -1,0 +1,27 @@
+name: Hysteria-Cloudflare
+on: 
+  workflow_dispatch: # باش تخدمو وقت ما بغيتي بيدك
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Hysteria & Cloudflare
+        run: |
+          sudo wget -q https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64 -O /usr/local/bin/hysteria
+          sudo chmod +x /usr/local/bin/hysteria
+          wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
+          sudo dpkg -i cloudflared-linux-amd64.deb
+          
+      - name: Run Server
+        run: |
+          # إنشاء الإعدادات
+          echo "listen: :54321" > config.yaml
+          echo "auth: saad_turbo_pass" >> config.yaml
+          echo "tls:" >> config.yaml
+          echo "  cert: selfsigned" >> config.yaml
+          echo "  key: selfsigned" >> config.yaml
+          
+          # تشغيل السيرفر والنفق
+          hysteria server -c config.yaml &
+          cloudflared tunnel --url udp://localhost:54321
