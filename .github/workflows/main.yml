@@ -1,36 +1,29 @@
-name: Saad-VLESS-Final
-on: 
+name: Close inactive issues
+on:
   workflow_dispatch:
+
+  schedule:
+    - cron: "33 3 * * *"
+
 jobs:
-  run-vless:
+  close-issues:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
-      - name: Start VLESS Server
-        run: |
-          # تحميل نسخة جاهزة من Xray بلا تثبيت
-          wget https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip
-          unzip Xray-linux-64.zip
-          
-          # إعداد السيرفر وسط المجلد الحالي
-          cat <<EOF > config.json
-          {
-            "inbounds": [{
-              "port": 8080,
-              "protocol": "vless",
-              "settings": {
-                "clients": [{"id": "saad-1122-3344-5566-778899aabbcc"}],
-                "decryption": "none"
-              },
-              "streamSettings": {
-                "network": "ws",
-                "wsSettings": {"path": "/saad-turbo"}
-              }
-            }],
-            "outbounds": [{"protocol": "freedom"}]
-          }
-          EOF
-          
-          # تشغيل السيرفر والنفق
-          curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cf && chmod +x cf
-          ./xray run -c config.json &
-          ./cf tunnel --url http://localhost:8080
+      - uses: actions/stale@v5
+        with:
+          days-before-stale: 30
+          days-before-close: 30
+          operations-per-run: 90
+          exempt-all-milestones: true
+          exempt-assignees: true
+          exempt-issue-labels: "wip,pinned,help-wanted,blocker,feature"
+          exempt-pr-labels: "wip,pinned,help-wanted,blocker,feature"
+          stale-issue-label: "stale"
+          stale-issue-message: "This issue is stale because it has been open for 30 days with no activity."
+          close-issue-message: "This issue was closed because it has been inactive for 14 days since being marked as stale."
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
